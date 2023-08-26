@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -335,10 +336,71 @@ class _ListOfExperiencePageState extends State<ListOfExperiencePage> {
                                           ],
                                         ),
                                       ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child:
-                                            Text(experienceData.defect.trim()),
+                                      Row(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Text(
+                                                experienceData.defect.trim()),
+                                          ),
+                                          const Spacer(),
+                                          InkWell(
+                                            onTap: () {
+                                              Widget cancelButton = TextButton(
+                                                child: Text("Cancel"),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                              );
+                                              Widget continueButton =
+                                                  TextButton(
+                                                child: Text("Delete"),
+                                                onPressed: () {
+                                                  List<String>
+                                                      listOfExperience =
+                                                      PreferenceImpl
+                                                          .userListOfExperienceString;
+                                                  listOfExperience
+                                                      .removeAt(columnIndex);
+
+                                                  PreferenceImpl
+                                                          .userListOfExperienceString =
+                                                      listOfExperience;
+                                                  Navigator.of(context).pop();
+
+                                                  setState(() {});
+                                                },
+                                              );
+
+                                              // set up the AlertDialog
+                                              AlertDialog alert = AlertDialog(
+                                                title: Text("Warning"),
+                                                content: Text("Are You Sure?"),
+                                                actions: [
+                                                  continueButton,
+                                                  cancelButton,
+                                                ],
+                                              );
+
+                                              // show the dialog
+                                              showDialog(
+                                                context: context,
+                                                builder:
+                                                    (BuildContext context) {
+                                                  return alert;
+                                                },
+                                              );
+                                            },
+                                            child: const Padding(
+                                              padding: EdgeInsets.symmetric(
+                                                  horizontal: 4),
+                                              child: Icon(
+                                                Icons.delete,
+                                                color: Colors.red,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ]),
                               );
@@ -373,16 +435,15 @@ class _ListOfExperiencePageState extends State<ListOfExperiencePage> {
     // Create the Pdf document
     var count = 0;
     var pages = 1;
-    print("lskdlksdkldk ${(experienceLog.length / 6)}");
-    print("lskdlksdkldk ${(experienceLog.length / 6) is int}");
 
+    final ByteData image = await rootBundle.load('images/ic_check.png');
+    Uint8List imageData = (image).buffer.asUint8List();
     if (experienceLog.length < 6) {
       count = 6 - experienceLog.length;
       pages = 1;
     } else if ((experienceLog.length % 6) == 0) {
       count = (experienceLog.length ~/ 6) * 6 - experienceLog.length;
       print("lskdlksdkldk ${3}");
-
     } else {
       count = ((experienceLog.length ~/ 6) + 1) *
               (experienceLog.length / 6).toInt() *
@@ -655,7 +716,7 @@ class _ListOfExperiencePageState extends State<ListOfExperiencePage> {
                     tableCell('11.Time (hrs)'),
                     tableCell('12.Maintenance record reference'),
                     tableCell('13.CS Sign & stamp(*)'),
-                    tableCell('14.CS Sign & stamp(*)'),
+                    tableCell('14.Approved certifier'),
                   ]),
               ...List.generate(
                 experienceLog.length,
@@ -716,10 +777,10 @@ class _ListOfExperiencePageState extends State<ListOfExperiencePage> {
                                           border: pw.Border(
                                               right: pw.BorderSide(
                                                   color: PdfColors.black))),
-                                      child: pw.Text(
-                                          taskType.isSelected ? "Y" : "",
-                                          style:
-                                              const pw.TextStyle(fontSize: 6)));
+                                      child: (taskType.isSelected)
+                                          ? pw.Image(pw.MemoryImage(imageData),
+                                              height: 6, width: 6)
+                                          : pw.SizedBox());
                                 },
                               ),
                             )),
@@ -734,11 +795,13 @@ class _ListOfExperiencePageState extends State<ListOfExperiencePage> {
                               mainAxisAlignment: pw.MainAxisAlignment.center,
                               children: List.generate(
                                 experienceLog.first.typeOfActivity.length,
-                                (childIndex) {
+                                    (childIndex) {
                                   final taskActivityType = TaskType.fromJson(
                                       json.decode(experienceLog[index]
                                           .typeOfActivity[childIndex]));
 
+                                  Uint8List imageData =
+                                      (image).buffer.asUint8List();
                                   return pw.Container(
                                       width: 10,
                                       alignment: pw.Alignment.center,
@@ -747,12 +810,10 @@ class _ListOfExperiencePageState extends State<ListOfExperiencePage> {
                                           border: pw.Border(
                                               right: pw.BorderSide(
                                                   color: PdfColors.black))),
-                                      child: pw.Text(
-                                          taskActivityType.isSelected
-                                              ? "Y"
-                                              : "",
-                                          style:
-                                              const pw.TextStyle(fontSize: 6)));
+                                      child: (taskActivityType.isSelected)
+                                          ? pw.Image(pw.MemoryImage(imageData),
+                                              height: 6, width: 6)
+                                          : pw.SizedBox());
                                 },
                               ),
                             )),
@@ -780,12 +841,11 @@ class _ListOfExperiencePageState extends State<ListOfExperiencePage> {
                                           border: pw.Border(
                                               right: pw.BorderSide(
                                                   color: PdfColors.black))),
-                                      child: pw.Text(
-                                          (experienceLog[index].auth == 'QCAA')
-                                              ? "Y"
-                                              : "",
-                                          style:
-                                              const pw.TextStyle(fontSize: 6))),
+                                      child: (experienceLog[index].auth ==
+                                              'QCAA')
+                                          ? pw.Image(pw.MemoryImage(imageData),
+                                              height: 6, width: 6)
+                                          : pw.SizedBox()),
                                   pw.Container(
                                       width: 8,
                                       alignment: pw.Alignment.center,
@@ -794,14 +854,13 @@ class _ListOfExperiencePageState extends State<ListOfExperiencePage> {
                                           border: pw.Border(
                                               right: pw.BorderSide(
                                                   color: PdfColors.black))),
-                                      child: pw.Text(
-                                          experienceLog[index].auth == 'EASA'
-                                              ? "Y"
-                                              : "",
-                                          style:
-                                              const pw.TextStyle(fontSize: 6)))
+                                      child: (experienceLog[index].auth ==
+                                              'EASA')
+                                          ? pw.Image(pw.MemoryImage(imageData),
+                                              height: 6, width: 6)
+                                          : pw.SizedBox())
                                 ])),
-                        tableCellEmpty(experienceLog[index].time),
+                        tableCellEmpty(experienceLog[index].mh),
                         tableCellEmpty(experienceLog[index].tlb),
                         tableCellEmpty(''),
                       ]);

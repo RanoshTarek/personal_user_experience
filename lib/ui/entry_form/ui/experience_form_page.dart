@@ -188,7 +188,7 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
   var currentCustomType = "Custom";
 
 
-  var currentTime = DateFormat('hh:mm').format(DateTime.now());
+  var currentTime = DateFormat('HH:mm').format(DateTime.now());
   var currentDate = DateFormat('dd-MM-yyyy').format(DateTime.now());
 
   Future<void> _selectDate(BuildContext context, bool startDate) async {
@@ -217,8 +217,10 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
           child: child!),
       initialTime: TimeOfDay.now(),
     );
+    final hour = pickedTime.toString().padLeft(2, "0");
+    final min =pickedTime.toString().padLeft(2, "0");
+    currentTime = pickedTime?.to24hours() ??"";
 
-    currentTime = pickedTime?.format(context) ?? "";
     //'${pickedTime?.hour.toString().padLeft(2, '0')}:${pickedTime?.minute.toString().padLeft(2, '0')}';
     setState(() {});
   }
@@ -809,5 +811,12 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
         ),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
+  }
+}
+extension TimeOfDayConverter on TimeOfDay {
+  String to24hours() {
+    final hour = this.hour.toString().padLeft(2, "0");
+    final min = this.minute.toString().padLeft(2, "0");
+    return "$hour:$min";
   }
 }
